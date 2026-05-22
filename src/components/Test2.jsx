@@ -1,20 +1,9 @@
 import { useState } from 'react'
 import axios from 'axios'
-import { Cloud, Sun, CloudRain, CloudSnow, Wind, CloudLightning, RefreshCw, AlertCircle, Loader } from 'lucide-react'
+import { RefreshCw, AlertCircle, Loader, MapPin } from 'lucide-react'
 
-const API_KEY = 'd69a0f6de9a982b10764b39f712ea4b3'
-const LAT = -6.2088
-const LON = 106.8456
-
-function getIcon(desc) {
-  const d = desc.toLowerCase()
-  if (d.includes('thunder')) return CloudLightning
-  if (d.includes('rain') || d.includes('drizzle') || d.includes('shower')) return CloudRain
-  if (d.includes('snow')) return CloudSnow
-  if (d.includes('mist') || d.includes('fog') || d.includes('haze')) return Wind
-  if (d.includes('clear')) return Sun
-  return Cloud
-}
+const API_KEY = '9a94d11d3f14404a5faf40c5c994c15a'
+const KOTA = 'Jakarta'
 
 const HARI = ['Min','Sen','Sel','Rab','Kam','Jum','Sab']
 const BULAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
@@ -34,25 +23,27 @@ function Test2() {
     setError('')
     setCuaca([])
     try {
-      const res = await axios.get('https://api.openweathermap.org/data/3.0/onecall', {
-        params: {
-          lat: LAT,
-          lon: LON,
-          exclude: 'current,minutely,hourly,alerts',
-          appid: API_KEY,
-          units: 'metric',
+      const res = await axios.get(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${KOTA}&appid=${API_KEY}&units=metric`
+      )
+      const seenDays = {}
+      const hasil = []
+      for (const item of res.data.list) {
+        const tanggal = item.dt_txt.split(' ')[0]
+        if (!seenDays[tanggal]) {
+          seenDays[tanggal] = true
+          hasil.push({
+            tanggal: fmtTgl(item.dt),
+            suhu: Math.round(item.main.temp),
+            deskripsi: item.weather[0].description,
+            icon: item.weather[0].icon,
+          })
         }
-      })
-      const hasil = res.data.daily.slice(0, 5).map(day => ({
-        tanggal: fmtTgl(day.dt),
-        suhu: Math.round(day.temp.day),
-        deskripsi: day.weather[0].description,
-        IconComp: getIcon(day.weather[0].description),
-      }))
+        if (hasil.length === 5) break
+      }
       setCuaca(hasil)
     } catch (e) {
-      if (e.response?.status === 401) setError('API Key tidak valid atau belum aktif.')
-      else if (e.response?.status === 403) setError('API Key belum berlangganan One Call 3.0. Aktifkan di dashboard OpenWeatherMap.')
+      if (e.response?.status === 401) setError('API Key tidak valid.')
       else setError('Gagal mengambil data. Cek koneksi internet.')
     }
     setLoading(false)
@@ -62,31 +53,43 @@ function Test2() {
     <div className="card">
       <div className="card-header">
         <h2>Weather Forecast — Jakarta</h2>
-        <p>Prakiraan cuaca 5 hari ke depan menggunakan OpenWeatherMap One Call API 3.0.</p>
+        <p>Prakiraan cuaca 5 hari ke depan menggunakan OpenWeatherMap Forecast API.</p>
       </div>
       <div className="card-body">
-        <button className="btn" onClick={ambilCuaca} disabled={loading}>
-          {loading ? <Loader size={14} className="spin" /> : <RefreshCw size={14} />}
-          {loading ? 'Mengambil...' : 'Tampilkan Cuaca'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <button className="btn" onClick={ambilCuaca} disabled={loading}>
+            {loading ? <Loader size={14} className="spin" /> : <RefreshCw size={14} />}
+            {loading ? 'Mengambil...' : 'Tampilkan Cuaca'}
+          </button>
+          <span style={{ fontSize: '0.75rem', color: '#999', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <MapPin size={11} /> Jakarta, ID
+          </span>
+        </div>
+
         {error && (
           <div className="status-msg">
             <AlertCircle />{error}
           </div>
         )}
+
         {cuaca.length > 0 && (
           <div className="weather-grid">
-            {cuaca.map((c, i) => {
-              const Icon = c.IconComp
-              return (
-                <div className="weather-card" key={i}>
-                  <div className="wdate">{c.tanggal}</div>
-                  <div className="wicon-wrap"><Icon /></div>
-                  <div className="wtemp">{c.suhu}<span className="wunit">°C</span></div>
-                  <div className="wdesc">{c.deskripsi}</div>
+            {cuaca.map((c, i) => (
+              <div className="weather-card" key={i}>
+                <div className="wdate">{c.tanggal}</div>
+                <div className="wicon-wrap">
+                  <img
+                    src={`https://openweathermap.org/img/wn/${c.icon}@2x.png`}
+                    alt={c.deskripsi}
+                    width={36}
+                    height={36}
+                    style={{ objectFit: 'contain' }}
+                  />
                 </div>
-              )
-            })}
+                <div className="wtemp">{c.suhu}<span className="wunit">°C</span></div>
+                <div className="wdesc">{c.deskripsi}</div>
+              </div>
+            ))}
           </div>
         )}
       </div>
