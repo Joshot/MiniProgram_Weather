@@ -2,7 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import { RefreshCw, AlertCircle, Loader, MapPin } from 'lucide-react'
 
-const API_KEY = '9a94d11d3f14404a5faf40c5c994c15a'
+const API_KEY = import.meta.env.VITE_API_KEY
 const KOTA = 'Jakarta'
 
 const HARI = ['Min','Sen','Sel','Rab','Kam','Jum','Sab']
