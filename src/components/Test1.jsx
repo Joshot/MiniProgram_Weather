@@ -20,6 +20,7 @@ function buildOutput() {
   return arr.join('  ')
 }
 
+
 const OUTPUT = buildOutput()
 
 function Test1() {
