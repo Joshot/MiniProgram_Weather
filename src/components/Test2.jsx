@@ -1,40 +1,28 @@
 import { useState } from 'react'
 import axios from 'axios'
+import {
+  Cloud, Sun, CloudRain, CloudSnow, Wind,
+  CloudLightning, Droplets, RefreshCw, AlertCircle, Loader
+} from 'lucide-react'
 
-const API_KEY = '8ce650732c4ad837aa78685b9898fb12'
+const API_KEY = '02652873c4b0bba1f724557145b9f827'
 
-const WEATHER_ICONS = {
-  'clear sky': '☀️',
-  'few clouds': '🌤️',
-  'scattered clouds': '⛅',
-  'broken clouds': '☁️',
-  'overcast clouds': '☁️',
-  'shower rain': '🌧️',
-  'rain': '🌧️',
-  'light rain': '🌦️',
-  'moderate rain': '🌧️',
-  'heavy intensity rain': '⛈️',
-  'thunderstorm': '⛈️',
-  'snow': '❄️',
-  'mist': '🌫️',
-  'haze': '🌫️',
-  'fog': '🌫️',
+function getWeatherIcon(desc) {
+  const d = desc.toLowerCase()
+  if (d.includes('thunder')) return CloudLightning
+  if (d.includes('rain') || d.includes('drizzle') || d.includes('shower')) return CloudRain
+  if (d.includes('snow')) return CloudSnow
+  if (d.includes('mist') || d.includes('fog') || d.includes('haze')) return Wind
+  if (d.includes('clear')) return Sun
+  return Cloud
 }
 
-function getIcon(desc) {
-  const lower = desc.toLowerCase()
-  for (const [key, val] of Object.entries(WEATHER_ICONS)) {
-    if (lower.includes(key)) return val
-  }
-  return '🌡️'
-}
-
-const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+const HARI = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 
 function formatTanggal(dtStr) {
   const d = new Date(dtStr)
-  return `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN[d.getMonth()]}`
+  return `${HARI[d.getDay()]} ${d.getDate()} ${BULAN[d.getMonth()]}`
 }
 
 function Test2() {
@@ -68,7 +56,7 @@ function Test2() {
             tanggal: formatTanggal(item.dt_txt),
             suhu: Math.round(item.main.temp),
             deskripsi: item.weather[0].description,
-            icon: getIcon(item.weather[0].description),
+            IconComp: getWeatherIcon(item.weather[0].description),
           })
         }
         if (hasil.length === 5) break
@@ -76,9 +64,9 @@ function Test2() {
       setCuaca(hasil)
     } catch (e) {
       if (e.response && e.response.status === 401) {
-        setError('API Key tidak valid.')
+        setError('API Key tidak valid atau belum aktif.')
       } else {
-        setError('Gagal mengambil data cuaca. Cek koneksi internet kamu.')
+        setError('Gagal mengambil data cuaca. Cek koneksi internet.')
       }
     }
     setLoading(false)
@@ -86,26 +74,53 @@ function Test2() {
 
   return (
     <div className="card">
-      <h2>🌤️ Tes 2 — Prakiraan Cuaca Jakarta (5 Hari)</h2>
-      <p className="desc">
-        Klik tombol di bawah untuk melihat prakiraan cuaca <strong>Jakarta</strong> 5 hari ke depan
-        menggunakan API dari <strong>openweathermap.org</strong>.
-      </p>
-      <button className="btn-run" onClick={ambilCuaca}>🔍 Tampilkan Cuaca</button>
-      {loading && <p className="loading-msg">⏳ Mengambil data cuaca...</p>}
-      {error && <p className="error-msg">⚠️ {error}</p>}
-      {cuaca.length > 0 && (
-        <div className="weather-grid">
-          {cuaca.map((c, i) => (
-            <div className="weather-card" key={i}>
-              <div className="wdate">{c.tanggal}</div>
-              <div className="wicon">{c.icon}</div>
-              <div className="wtemp">{c.suhu}°C</div>
-              <div className="wdesc">{c.deskripsi}</div>
-            </div>
-          ))}
+      <div className="card-header">
+        <div className="card-icon">
+          <Cloud size={18} />
         </div>
-      )}
+        <div className="card-title">
+          <h2>Weather Forecast — Jakarta</h2>
+          <p>Prakiraan cuaca 5 hari ke depan menggunakan OpenWeatherMap API. Satu suhu per hari.</p>
+        </div>
+      </div>
+
+      <div className="card-body">
+        <div className="weather-btn-row">
+          <button className="btn btn-primary" onClick={ambilCuaca} disabled={loading}>
+            {loading ? <Loader size={15} className="spin" /> : <RefreshCw size={15} />}
+            {loading ? 'Mengambil data...' : 'Tampilkan Cuaca'}
+          </button>
+          <div className="weather-meta">
+            <Droplets />
+            openweathermap.org
+          </div>
+        </div>
+
+        {error && (
+          <div className="status-msg status-error">
+            <AlertCircle />
+            {error}
+          </div>
+        )}
+
+        {cuaca.length > 0 && (
+          <div className="weather-grid">
+            {cuaca.map((c, i) => {
+              const Icon = c.IconComp
+              return (
+                <div className="weather-card" key={i}>
+                  <div className="wdate">{c.tanggal}</div>
+                  <div className="wicon-wrap">
+                    <Icon size={18} />
+                  </div>
+                  <div className="wtemp">{c.suhu}<span className="wunit">°C</span></div>
+                  <div className="wdesc">{c.deskripsi}</div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

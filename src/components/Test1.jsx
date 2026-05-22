@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Play, Terminal, Hash } from 'lucide-react'
 
 function isPrime(n) {
   if (n < 2) return false
@@ -25,18 +26,54 @@ function Test1() {
 
   return (
     <div className="card">
-      <h2>📋 Tes 1 — Program Kecil (Array 1–100)</h2>
-      <p className="desc">
-        Cetak angka 1–100 secara <strong>terbalik</strong>, horizontal, dengan aturan:
-      </p>
-      <ul className="rules-list">
-        <li>❌ Jangan cetak bilangan prima</li>
-        <li>3️⃣ Kelipatan 3 → <strong>Foo</strong></li>
-        <li>5️⃣ Kelipatan 5 → <strong>Bar</strong></li>
-        <li>🔢 Kelipatan 3 dan 5 → <strong>FooBar</strong></li>
-      </ul>
-      <button className="btn-run" onClick={jalankan}>▶ Jalankan Program</button>
-      {output && <div className="output-box">{output}</div>}
+      <div className="card-header">
+        <div className="card-icon">
+          <Hash size={18} />
+        </div>
+        <div className="card-title">
+          <h2>Small Program — Array 1 to 100</h2>
+          <p>Cetak angka 1–100 secara terbalik dan horizontal menggunakan aturan Foo / Bar / FooBar.</p>
+        </div>
+      </div>
+
+      <div className="card-body">
+        <div className="rules-grid">
+          <div className="rule-item">
+            <span className="rule-badge red">SKIP</span>
+            <span className="rule-text">Bilangan prima tidak dicetak</span>
+          </div>
+          <div className="rule-item">
+            <span className="rule-badge indigo">÷ 3</span>
+            <span className="rule-text">Kelipatan 3 → <strong>Foo</strong></span>
+          </div>
+          <div className="rule-item">
+            <span className="rule-badge emerald">÷ 5</span>
+            <span className="rule-text">Kelipatan 5 → <strong>Bar</strong></span>
+          </div>
+          <div className="rule-item">
+            <span className="rule-badge amber">÷ 15</span>
+            <span className="rule-text">Kelipatan 3 & 5 → <strong>FooBar</strong></span>
+          </div>
+        </div>
+
+        <button className="btn btn-primary" onClick={jalankan}>
+          <Play size={15} />
+          Jalankan Program
+        </button>
+
+        {output && (
+          <div className="output-wrap">
+            <div className="output-topbar">
+              <div className="output-label">
+                <Terminal size={13} />
+                Output
+              </div>
+              <div className="output-dot" />
+            </div>
+            <div className="output-box">{output}</div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
